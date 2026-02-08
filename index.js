@@ -55,6 +55,13 @@ async function fallbackBrowser(username) {
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', message: 'Server is running' });
+});
+
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', message: 'Server is running' });
