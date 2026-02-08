@@ -56,7 +56,7 @@ app.use(express.json({ limit: '10mb' }));
 
 
 // Health check endpoint
-app.get('/', (req, res) => {
+app.get('/health', (req, res) => {
   res.json({ status: 'ok', message: 'Server is running' });
 });
 
