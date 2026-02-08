@@ -2,7 +2,7 @@
   "name": "mbe-bid-server",
   "version": "1.0.0",
   "description": "Backend server for MBE Chrome extension - Generates bids using Google Gemini API",
-  "main": "server.js",
+  "main": "index.js",
   "type": "module",
   "scripts": {
     "start": "node index.js",
@@ -30,3 +30,4 @@
     "node": "20"
   }
 }
+
