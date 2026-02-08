@@ -56,7 +56,7 @@ app.use(express.json({ limit: '10mb' }));
 
 
 // Health check endpoint
-app.get('/health', (req, res) => {
+app.get('/', (req, res) => {
   res.json({ status: 'ok', message: 'Server is running' });
 });
 
@@ -186,5 +186,6 @@ app.listen(PORT, () => {
   console.log(`📍 Bid generation: POST http://localhost:${PORT}/api/generate-bid`);
   console.log(`📍 Client name lookup: GET http://localhost:${PORT}/api/clientName`);
 });
+
 
 export default app;
