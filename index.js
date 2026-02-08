@@ -4,7 +4,6 @@ import dotenv from 'dotenv';
 import { GoogleGenAI } from "@google/genai";
 import axios from "axios";
 import * as cheerio from "cheerio";
-import { chromium } from "playwright";
 
 // Load environment variables
 dotenv.config();
