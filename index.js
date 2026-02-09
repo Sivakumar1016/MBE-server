@@ -136,27 +136,27 @@ app.post('/api/generate-bid', async (req, res) => {
       Do not mention repository access.
       Output only the bid message."`;
 
-    // const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
+    const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
 
-    // const r = await ai.models.generateContent({
-    //   model: GEMINI_MODEL,
-    //   contents: prompt
-    // });
+    const r = await ai.models.generateContent({
+      model: GEMINI_MODEL,
+      contents: prompt
+    });
 
-    // // Check for placeholders
-    // let bidError = null;
-    // if ( r.text.includes('[') ) {
-    //   bidError = 'Bid includes placeholder - may need review';
-    // }
+    // Check for placeholders
+    let bidError = null;
+    if ( r.text.includes('[') ) {
+      bidError = 'Bid includes placeholder - may need review';
+    }
 
-    // [console.log('2222222222222222', r.text)]
+    [console.log('2222222222222222', r.text)]
 
     res.json({
       success: true,
-      // bid: r.text,
-      // error: bidError,
-      bid: prompt.substring(1000),
-      error: null,
+      bid: r.text,
+      error: bidError,
+      // bid: prompt.substring(1000),
+      // error: null,
     });
   } catch (error) {
     console.error('Server error:', error);
@@ -233,4 +233,5 @@ app.listen(PORT, () => {
 
 
 export default app;
+
 
