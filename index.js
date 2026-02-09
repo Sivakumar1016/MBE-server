@@ -1,8 +1,17 @@
 import { GoogleGenAI } from "@google/genai";
+import express from 'express';
+
+const app = express();
+
+// Middleware
+app.use(cors());
+app.use(express.json({ limit: '10mb' }));
+
+app.get('/', (req, res) => {
 
 const ai = new GoogleGenAI({ apiKey: "AIzaSyBUtD8uklIi0Y2t970xQBguhJyIx9WXQ0s" });
 
-const r = await ai.models.generateContent({
+const r = ai.models.generateContent({
   model: "gemini-2.5-flash",
 //   contents: `I wanna to start new conversation.`,
 // });
@@ -55,3 +64,30 @@ Do not mention repository access.
 Output only the bid message.
 `});
 console.log(r.text);
+
+  res.json({ status: 'ok', message: r.text });
+});
+
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Unhandled error:', err);
+  res.status(500).json({
+    error: 'Internal server error',
+    message: err.message,
+  });
+});
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({ error: 'Endpoint not found' });
+});
+
+
+
+// Start server
+app.listen(PORT, () => {
+  console.log(`✅ Server is running on port ${PORT}`);
+});
+
+export default app;
