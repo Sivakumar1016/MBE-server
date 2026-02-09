@@ -57,10 +57,10 @@ app.use(express.json({ limit: '10mb' }));
 
 
 // Health check endpoint
-app.get('/', (req, res) => {
+app.get('/', async(req, res) => {
   const ai = new GoogleGenAI({ apiKey: "AIzaSyBUtD8uklIi0Y2t970xQBguhJyIx9WXQ0s" });
 
-const r = ai.models.generateContent({
+const r = await ai.models.generateContent({
   model: "gemini-2.5-flash",
 //   contents: `I wanna to start new conversation.`,
 // });
@@ -124,7 +124,6 @@ app.get('/api/clientName', async (req, res) => {
       return res.status(400).json({ error: 'Client name is required' });
     }
 
-    console.log('111111111111111111111', clientName)
     let name = await fastFetch(clientName);
     if (!name) name = await fallbackBrowser(clientName);
 
@@ -203,8 +202,6 @@ app.post('/api/generate-bid', async (req, res) => {
     if ( r.text.includes('[') ) {
       bidError = 'Bid includes placeholder - may need review';
     }
-
-    [console.log('2222222222222222', r.text)]
 
     res.json({
       success: true,
@@ -288,5 +285,6 @@ app.listen(PORT, () => {
 
 
 export default app;
+
 
 
