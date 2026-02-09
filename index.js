@@ -154,11 +154,7 @@ app.post('/api/generate-bid', async (req, res) => {
       success: true,
       // bid: r.text,
       // error: bidError,
-<<<<<<< HEAD
-      bid: prompt,
-=======
       bid: prompt.substring(1000),
->>>>>>> 2899563 (first-commit)
       error: null,
     });
   } catch (error) {
@@ -169,8 +165,6 @@ app.post('/api/generate-bid', async (req, res) => {
   }
 });
 
-<<<<<<< HEAD
-=======
 // Send Slack notification endpoint
 app.post('/api/send-notification', async (req, res) => {
   try {
@@ -215,9 +209,6 @@ app.post('/api/send-notification', async (req, res) => {
     });
   }
 });
-
->>>>>>> 2899563 (first-commit)
-// Error handling middleware
 app.use((err, req, res, next) => {
   console.error('Unhandled error:', err);
   res.status(500).json({
@@ -234,19 +225,10 @@ app.use((req, res) => {
 // Start server
 app.listen(PORT, () => {
   console.log(`✅ Server is running on port ${PORT}`);
-<<<<<<< HEAD
   console.log(`📍 Health check: http://localhost:${PORT}/health`);
-  console.log(`📍 Bid generation: POST http://localhost:${PORT}/api/generate-bid`);
-  console.log(`📍 Client name lookup: GET http://localhost:${PORT}/api/clientName`);
-});
-
-
-export default app;
-=======
   console.log(`📍 Bid generation: POST http://localhost:${PORT}/api/generate-bid`);
   console.log(`📍 Client name lookup: GET http://localhost:${PORT}/api/clientName`);
   console.log(`📍 Slack notification: POST http://localhost:${PORT}/api/send-notification`);
 });
 
 export default app;
->>>>>>> 2899563 (first-commit)
