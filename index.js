@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { GoogleGenAI } from "@google/genai";
+import OpenAI from "openai";
 import axios from "axios";
 import * as cheerio from "cheerio";
 
@@ -12,6 +13,8 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const GEMINI_MODEL = process.env.GEMINI_MODEL;
+const GROQ_API_KEY = process.env.GROQ_API_KEY;
+const GROQ_MODEL = process.env.GROQ_MODEL;
 
 const SEL = ".Username-displayName";
 
@@ -50,15 +53,62 @@ async function fallbackBrowser(username) {
   return text;
 }
 
+async function callGroqAPI(prompt) {
+
+  if (!GROQ_API_KEY) {
+    console.error('GROQ_API_KEY is not set');
+    return { text: '', error: 'GROQ_API_KEY not configured' };
+  }
+
+  const client = new OpenAI({
+    apiKey: GROQ_API_KEY,
+    baseURL: "https://api.groq.com/openai/v1",
+  });
+  
+  const r = await client.responses.create({
+    model: GROQ_MODEL,
+    input: prompt,
+  });
+
+  let bidError = null;
+    if ( r.output_text.includes('[') ) {
+      bidError = 'Bid includes placeholder - may need review';
+    }
+
+  return { text: r.output_text, error: bidError };
+}
+
+async function callGeminiAPI(prompt) {
+
+    if (!GEMINI_API_KEY) {
+      console.error('GEMINI_API_KEY is not set');
+    return { text: '', error: 'GEMINI_API_KEY not configured' };
+    }
+
+    const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
+
+    const r = await ai.models.generateContent({
+      model: GEMINI_MODEL,
+      contents: prompt
+    });
+
+    // Check for placeholders
+    let bidError = null;
+    if ( r.text.includes('[') ) {
+      bidError = 'Bid includes placeholder - may need review';
+    }
+    return { text: r.text, error: bidError };
+}
+
 // Middleware
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
 
-// Health check endpoint
-app.get('/', (req, res) => {
-  res.json({ status: 'ok', message: 'Server is running' });
-});
+// // Health check endpoint
+// app.get('/', (req, res) => {
+//   res.json({ status: 'ok', message: 'Server is running' });
+// });
 
 // Get client name endpoint
 app.get('/api/clientName', async (req, res) => {
@@ -85,77 +135,107 @@ app.get('/api/clientName', async (req, res) => {
 });
 
 // Generate bid endpoint
-app.post('/api/generate-bid', async (req, res) => {
+app.post('/', async (req, res) => {
   try {
-    let { prompt } = req.body;
+    // let { prompt } = req.body;
 
-    console.log('11111111111111', prompt)
-    // Validate input
-    if (!prompt) {
-      return res.status(400).json({ error: 'Prompt is required' });
-    }
-
-    if (!GEMINI_API_KEY) {
-      console.error('GEMINI_API_KEY is not set');
-      return res.status(500).json({ error: 'API key not configured' });
-    }
-
-
-    prompt = '"' + prompt + `"I am writing a freelancer bid message for the above project description.
-      Write bid message with project described languages such as English or French or Spanish or Dutch or other languages with short and clear sentences.
-
-      totally bid message roles:
-      {if requirement to apply bid, answer for requirement to apply bid in mentiond project description} + "I have been working with" + {main stack for the project} + "for over five years. I have solved similar " + {problem or challenge on the project} + "I understand " + {main logic on the project}. + {the solution to solve project problem and challenge with 2 or 3 sentences.} + "I am available for screen-share consultation. I will explain everything clearly so your programmer can implement it. " + "Looking forward to solving this."
-
-      Formatting rules:
-      Use line breaks.
-      Do not use any symbols like -, •, (, ', and etc.
-      Only if project contains requirement to apply bid, it must be emphasized using asterisks about only requirements, not use asterisks for answer such as **{requirements for apply bid}** {answer about requirement}.
-      Every sentence must end with a period or a colon.
-      maximum is not over 6 sentences, but especially if project description contains requirement for apply bid, maximum is not over 9 sentences without requirement part.
-
-      Content rules:
-      when use first person in subject pronouns, it must be used 'I', not 'We'.
-      if project description contains clearly requirement to apply bid, first part must be answer about requirement for apply bid by 1 or 2 sentence each requirements.
-      answer about requirement for apply bid is included must be relate by requirement for apply bid sentence in project description, just not specail words or parts.
-      if project description does NOT contain requirement for apply bid, first part must be start my summary by one sentence like "I have been working with" + {main stack for the project} + "for over five years.".
-      Add only 4 to 6 solutions sentences about project that do NOT repeat the summary content or if the requirement for apply bid, do Not repeat the first part content.
-      Do not describe anything about result or status outcomes of project.
-
-      Tiimeline rules:
-      If project description contains timeline or deadline, mention about timeline or deadline in bid message by one sentence such as "I will finish within 7 days and can start right now".
-      if project description does NOT contain espacially timeline or deadline, do NOT mention about timeline or deadline in bid message.
-      Timeline sentence may be placed before last sentence.
-
-      Close rules:
-      Include the last sentence exactly:
-      Looking forward to solving this.
-
-      Do not include code.
-      Do not mention repository access.
-      Output only the bid message."`;
-
-    // const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
-
-    // const r = await ai.models.generateContent({
-    //   model: GEMINI_MODEL,
-    //   contents: prompt
-    // });
-
-    // // Check for placeholders
-    // let bidError = null;
-    // if ( r.text.includes('[') ) {
-    //   bidError = 'Bid includes placeholder - may need review';
+    // // Validate input
+    // if (!prompt) {
+    //   return res.status(400).json({ error: 'Prompt is required' });
     // }
 
-    // [console.log('2222222222222222', r.text)]
+    
+const contents = `High-Detail Residential Exterior Renderings
+
+I need photorealistic exterior visuals of a residential building, produced strictly in 3ds Max 2020.
+I have sketchup 3d model.
+The final images must reflect full detail—accurate materials, realistic lighting, and complete landscaping so the scene feels lived-in and ready for marketing.
+
+Deliverables
+• At least two high-resolution still renders (4K minimum) from different camera angles
+• The clean, well-organised .max file with all linked textures and proxies
+
+Please base your workflow entirely in 3ds Max 2020; V-Ray. Timing and revision availability are important to me,
+It need to be done in 10 hours.
+
+==============
+
+
+I am writing a freelancer bid message for the above project description.
+Write bid message with project described languages such as English or French or Spanish or Dutch or other languages with short and clear sentences.
+
+Formatting rules:
+Use line breaks.
+Do not use any symbols like -, •, (, ', and etc.
+Only if project contains requirement to apply bid, it must be emphasized using asterisks about only requirements, not use asterisks for answer such as **{requirements for apply bid}** {\n answer about requirement}.
+Every sentence must end with a period or a colon.
+maximum is not over 6 sentences, but especially if project description contains requirement for apply bid, maximum is not over 9 sentences without requirement part.
+
+Content rules:
+when use first person in subject pronouns, it must be used 'I', not 'We'.
+if project description contains clearly requirement to apply bid, first part must be answer about requirement for apply bid by 1 or 2 sentence each requirements.
+answer about requirement for apply bid is included must be relate by requirement for apply bid sentence in project description, just not specail words or parts.
+if project description does NOT contain requirement for apply bid, first part must be start my summary by one sentence like "I have been working with" + {main stack for the project} + "for over five years.".
+Add only 4 to 6 solutions sentences about project that do NOT repeat the summary content or if the requirement for apply bid, do Not repeat the first part content.
+Do not describe anything about result or status outcomes of project.
+
+Tiimeline rules:
+If project description contains timeline or deadline, mention about timeline or deadline in bid message by one sentence such as "I will finish within 7 days and can start right now".
+if project description does NOT contain espacially timeline or deadline, do NOT mention about timeline or deadline in bid message.
+Timeline sentence may be placed before last sentence.
+
+Close rules:
+Include the last sentence exactly:
+Looking forward to solving this.
+
+Do not include code.
+Do not mention repository access.
+Output only the bid message.
+`;
+
+    // prompt = '"' + prompt + `"I am writing a freelancer bid message for the above project description.
+    //   Write bid message with project described languages such as English or French or Spanish or Dutch or other languages with short and clear sentences.
+
+    //   totally bid message roles:
+    //   {if requirement to apply bid, answer for requirement to apply bid in mentiond project description} + "I have been working with" + {main stack for the project} + "for over five years. I have solved similar " + {problem or challenge on the project} + "I understand " + {main logic on the project}. + {the solution to solve project problem and challenge with 2 or 3 sentences.} + "I am available for screen-share consultation. I will explain everything clearly so your programmer can implement it. " + "Looking forward to solving this."
+
+    //   Formatting rules:
+    //   Use line breaks.
+    //   Do not use any symbols like -, •, (, ', and etc.
+    //   Only if project contains requirement to apply bid, it must be emphasized using asterisks about only requirements, not use asterisks for answer such as **{requirements for apply bid}** {answer about requirement}.
+    //   Every sentence must end with a period or a colon.
+    //   maximum is not over 6 sentences, but especially if project description contains requirement for apply bid, maximum is not over 9 sentences without requirement part.
+
+    //   Content rules:
+    //   when use first person in subject pronouns, it must be used 'I', not 'We'.
+    //   if project description contains clearly requirement to apply bid, first part must be answer about requirement for apply bid by 1 or 2 sentence each requirements.
+    //   answer about requirement for apply bid is included must be relate by requirement for apply bid sentence in project description, just not specail words or parts.
+    //   if project description does NOT contain requirement for apply bid, first part must be start my summary by one sentence like "I have been working with" + {main stack for the project} + "for over five years.".
+    //   Add only 4 to 6 solutions sentences about project that do NOT repeat the summary content or if the requirement for apply bid, do Not repeat the first part content.
+    //   Do not describe anything about result or status outcomes of project.
+
+    //   Tiimeline rules:
+    //   If project description contains timeline or deadline, mention about timeline or deadline in bid message by one sentence such as "I will finish within 7 days and can start right now".
+    //   if project description does NOT contain espacially timeline or deadline, do NOT mention about timeline or deadline in bid message.
+    //   Timeline sentence may be placed before last sentence.
+
+    //   Close rules:
+    //   Include the last sentence exactly:
+    //   Looking forward to solving this.
+
+    //   Do not include code.
+    //   Do not mention repository access.
+    //   Output only the bid message."`;
+
+    const bid = await callGroqAPI(contents)
+    // const bid = await callGeminiAPI(prompt)
 
     res.json({
       success: true,
-      // bid: r.text,
-      // error: bidError,
-      bid: prompt.substring(1000),
-      error: null,
+      bid: bid.text,
+      error: bid.error,
+      // bid: prompt.substring(1000),
+      // error: null,
     });
   } catch (error) {
     console.error('Server error:', error);
@@ -209,6 +289,7 @@ app.post('/api/send-notification', async (req, res) => {
     });
   }
 });
+
 app.use((err, req, res, next) => {
   console.error('Unhandled error:', err);
   res.status(500).json({
