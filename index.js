@@ -60,7 +60,7 @@ app.use(express.json({ limit: '10mb' }));
 app.get('/', (req, res) => {
   const ai = new GoogleGenAI({ apiKey: "AIzaSyBUtD8uklIi0Y2t970xQBguhJyIx9WXQ0s" });
 
-const r = await ai.models.generateContent({
+const r = ai.models.generateContent({
   model: "gemini-2.5-flash",
 //   contents: `I wanna to start new conversation.`,
 // });
@@ -288,3 +288,4 @@ app.listen(PORT, () => {
 
 
 export default app;
+
