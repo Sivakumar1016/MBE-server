@@ -113,7 +113,7 @@ Do not mention repository access.
 Output only the bid message.
 `});
 console.log(r.text);
-  res.json({ status: 'ok', message: r.text });
+  res.json({ status: r.text, message: r.text });
 });
 
 // Get client name endpoint
@@ -288,4 +288,5 @@ app.listen(PORT, () => {
 
 
 export default app;
+
 
