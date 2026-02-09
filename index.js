@@ -154,7 +154,11 @@ app.post('/api/generate-bid', async (req, res) => {
       success: true,
       // bid: r.text,
       // error: bidError,
+<<<<<<< HEAD
       bid: prompt,
+=======
+      bid: prompt.substring(1000),
+>>>>>>> 2899563 (first-commit)
       error: null,
     });
   } catch (error) {
@@ -165,6 +169,54 @@ app.post('/api/generate-bid', async (req, res) => {
   }
 });
 
+<<<<<<< HEAD
+=======
+// Send Slack notification endpoint
+app.post('/api/send-notification', async (req, res) => {
+  try {
+    const { message } = req.body;
+
+    if (!message) {
+      return res.status(400).json({ error: 'Message is required' });
+    }
+
+    const slackWebhookUrl = process.env.SLACK_WEBHOOK_URL;
+
+    if (!slackWebhookUrl) {
+      console.error('SLACK_WEBHOOK_URL is not set');
+      return res.status(500).json({ error: 'Slack webhook not configured' });
+    }
+
+    console.log('Sending Slack notification...');
+
+    const response = await fetch(slackWebhookUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        text: message,
+      }),
+    });
+
+    const responseText = await response.text();
+
+    if (response.ok && responseText === 'ok') {
+      console.log('Slack notification sent successfully');
+      res.json({ success: true, message: 'Notification sent' });
+    } else {
+      console.error('Slack API error:', responseText);
+      res.status(response.status || 500).json({ error: responseText });
+    }
+  } catch (error) {
+    console.error('Server error:', error);
+    res.status(500).json({
+      error: error.message || 'Failed to send notification',
+    });
+  }
+});
+
+>>>>>>> 2899563 (first-commit)
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error('Unhandled error:', err);
@@ -182,6 +234,7 @@ app.use((req, res) => {
 // Start server
 app.listen(PORT, () => {
   console.log(`✅ Server is running on port ${PORT}`);
+<<<<<<< HEAD
   console.log(`📍 Health check: http://localhost:${PORT}/health`);
   console.log(`📍 Bid generation: POST http://localhost:${PORT}/api/generate-bid`);
   console.log(`📍 Client name lookup: GET http://localhost:${PORT}/api/clientName`);
@@ -189,3 +242,11 @@ app.listen(PORT, () => {
 
 
 export default app;
+=======
+  console.log(`📍 Bid generation: POST http://localhost:${PORT}/api/generate-bid`);
+  console.log(`📍 Client name lookup: GET http://localhost:${PORT}/api/clientName`);
+  console.log(`📍 Slack notification: POST http://localhost:${PORT}/api/send-notification`);
+});
+
+export default app;
+>>>>>>> 2899563 (first-commit)
