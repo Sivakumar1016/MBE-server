@@ -12,6 +12,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const GEMINI_MODEL = process.env.GEMINI_MODEL;
+const slackWebhookUrl = process.env.SLACK_WEBHOOK_URL;
 
 const SEL = ".Username-displayName";
 
@@ -175,8 +176,6 @@ app.post('/api/send-notification', async (req, res) => {
       return res.status(400).json({ error: 'Message is required' });
     }
 
-    const slackWebhookUrl = process.env.SLACK_WEBHOOK_URL;
-
     if (!slackWebhookUrl) {
       console.error('SLACK_WEBHOOK_URL is not set');
       return res.status(500).json({ error: 'Slack webhook not configured' });
@@ -234,3 +233,4 @@ app.listen(PORT, () => {
 
 
 export default app;
+
