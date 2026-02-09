@@ -170,6 +170,7 @@ app.post('/api/send-notification', async (req, res) => {
   try {
     const { message } = req.body;
 
+    console.log(message)
     if (!message) {
       return res.status(400).json({ error: 'Message is required' });
     }
@@ -230,5 +231,6 @@ app.listen(PORT, () => {
   console.log(`📍 Client name lookup: GET http://localhost:${PORT}/api/clientName`);
   console.log(`📍 Slack notification: POST http://localhost:${PORT}/api/send-notification`);
 });
+
 
 export default app;
