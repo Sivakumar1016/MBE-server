@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { GoogleGenAI } from "@google/genai";
-import OpenAI from "openai";
+// import OpenAI from "openai";
 
 // Load environment variables
 dotenv.config();
@@ -16,30 +16,30 @@ const GROQ_MODEL = process.env.GROQ_MODEL;
 
 const SEL = ".Username-displayName";
 
-async function callGroqAPI(prompt) {
+// async function callGroqAPI(prompt) {
 
-    if (!GROQ_API_KEY) {
-      console.error('GROQ_API_KEY is not set');
-    return { text: '', error: 'GROQ_API_KEY not configured' };
-    }
+//     if (!GROQ_API_KEY) {
+//       console.error('GROQ_API_KEY is not set');
+//     return { text: '', error: 'GROQ_API_KEY not configured' };
+//     }
 
-    const client = new OpenAI({
-      apiKey: GROQ_API_KEY,
-      baseURL: "https://api.groq.com/openai/v1",
-    });
+//     const client = new OpenAI({
+//       apiKey: GROQ_API_KEY,
+//       baseURL: "https://api.groq.com/openai/v1",
+//     });
 
-    const r = await client.responses.create({
-      model: GROQ_MODEL,
-      input: prompt,
-    });
+//     const r = await client.responses.create({
+//       model: GROQ_MODEL,
+//       input: prompt,
+//     });
 
-    // Check for placeholders
-    let bidError = null;
-    if ( r.output_text.includes('[') ) {
-      bidError = 'Bid includes placeholder - may need review';
-    }
-    return { text: r.output_text, error: bidError };
-}
+//     // Check for placeholders
+//     let bidError = null;
+//     if ( r.output_text.includes('[') ) {
+//       bidError = 'Bid includes placeholder - may need review';
+//     }
+//     return { text: r.output_text, error: bidError };
+// }
 
 async function callGeminiAPI(prompt) {
 
