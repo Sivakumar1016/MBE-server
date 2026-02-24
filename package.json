@@ -1,0 +1,32 @@
+{
+  "name": "mbe-bid-server",
+  "version": "1.0.0",
+  "description": "Backend server for MBE Chrome extension - Generates bids using Google Gemini API",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node index.js"
+  },
+  "keywords": [
+    "freelancer",
+    "bid",
+    "gemini",
+    "api",
+    "gcp"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@google/genai": "^1.38.0",
+    "axios": "^1.13.3",
+    "cheerio": "^1.2.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "playwright": "^1.58.0"
+  },
+  "engines": {
+    "node": "20"
+  }
+}
