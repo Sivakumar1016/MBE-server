@@ -3,8 +3,6 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { GoogleGenAI } from "@google/genai";
 import OpenAI from "openai";
-import axios from "axios";
-import * as cheerio from "cheerio";
 
 // Load environment variables
 dotenv.config();
@@ -17,41 +15,6 @@ const GROQ_API_KEY = process.env.GROQ_API_KEY;
 const GROQ_MODEL = process.env.GROQ_MODEL;
 
 const SEL = ".Username-displayName";
-
-async function fastFetch(username) {
-  const URL = `https://www.freelancer.com/u/${username}`;
-  const { data: html } = await axios.get(URL, {
-    headers: {
-      "User-Agent":
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123 Safari/537.36",
-      "Accept-Language": "en-US,en;q=0.9",
-    },
-    timeout: 15000,
-  });
-
-  const $ = cheerio.load(html);
-  const text = $(SEL).first().text().trim();
-  return text || null;
-}
-
-async function fallbackBrowser(username) {
-  const URL = `https://www.freelancer.com/u/${username}`;
-  const browser = await chromium.launch({ headless: true });
-  const page = await browser.newPage();
-
-  await page.setExtraHTTPHeaders({
-    "User-Agent":
-      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123 Safari/537.36",
-    "Accept-Language": "en-US,en;q=0.9",
-  });
-
-  await page.goto(URL, { waitUntil: "domcontentloaded" });
-  await page.waitForSelector(SEL, { timeout: 15000 });
-
-  const text = await page.$eval(SEL, (el) => (el.textContent || "").trim());
-  await browser.close();
-  return text;
-}
 
 async function callGroqAPI(prompt) {
 
@@ -105,33 +68,6 @@ app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
 
-// // Health check endpoint
-// app.get('/', (req, res) => {
-//   res.json({ status: 'ok', message: 'Server is running' });
-// });
-
-// Get client name endpoint
-app.get('/api/clientName', async (req, res) => {
-  try {
-    const { clientName } = req.query;
-    if (!clientName) {
-      return res.status(400).json({ error: 'Client name is required' });
-    }
-
-    let name = await fastFetch(clientName);
-    if (!name) name = await fallbackBrowser(clientName);
-
-    if (!name) {
-      return res.status(404).json({ error: 'Client name not found' });
-    }
-
-    const firstName = name.split(' ')[0];
-    res.json({ clientName: firstName });
-  } catch (error) {
-    console.error('Error fetching client name:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
 
 // Generate bid endpoint
 app.post('/api/generate-bid', async (req, res) => {
@@ -253,51 +189,6 @@ Timeline rules:
   }
 });
 
-// Send Slack notification endpoint
-app.post('/api/send-notification', async (req, res) => {
-  try {
-    const { message } = req.body;
-
-    if (!message) {
-      return res.status(400).json({ error: 'Message is required' });
-    }
-
-    const slackWebhookUrl = process.env.SLACK_WEBHOOK_URL;
-
-    if (!slackWebhookUrl) {
-      console.error('SLACK_WEBHOOK_URL is not set');
-      return res.status(500).json({ error: 'Slack webhook not configured' });
-    }
-
-    console.log('Sending Slack notification...');
-
-    const response = await fetch(slackWebhookUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        text: message,
-      }),
-    });
-
-    const responseText = await response.text();
-
-    if (response.ok && responseText === 'ok') {
-      console.log('Slack notification sent successfully');
-      res.json({ success: true, message: 'Notification sent' });
-    } else {
-      console.error('Slack API error:', responseText);
-      res.status(response.status || 500).json({ error: responseText });
-    }
-  } catch (error) {
-    console.error('Server error:', error);
-    res.status(500).json({
-      error: error.message || 'Failed to send notification',
-    });
-  }
-});
-
 app.use((err, req, res, next) => {
   console.error('Unhandled error:', err);
   res.status(500).json({
@@ -312,10 +203,11 @@ app.use((req, res) => {
 });
 
 // Start server
+if (!process.env.VERCEL) {
 app.listen(PORT, () => {
   console.log(`✅ Server is running on port ${PORT}`);
   console.log(`📍 Bid generation: POST http://localhost:${PORT}/api/generate-bid`);
-  console.log(`📍 Slack notification: POST http://localhost:${PORT}/api/send-notification`);
 });
+}
 
 export default app;
